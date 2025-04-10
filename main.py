@@ -1,17 +1,20 @@
-from Face_extract import FaceExtract
+import asyncio
+import cv2
+from comando import aguardar_comando
 from FaceRecognition_RealTime import RecognitionRealTime
 
-def main():
-    print("Bem-Vindo ao sistema de reconhecimento!")
-    resposta = input("Deseja adicionar um novo morador? (s/n): ").strip().lower()
+async def main():
+    camera = cv2.VideoCapture(0)
 
-    if resposta == 's':
-        nome = input("Digite o nome do novo usuario e se prepare para a coleta de faces: ").strip().lower()
+    estado = {"modo": "reconhecimento"}  # modo: "reconhecimento" ou "coleta"
 
-        FaceExtract(nome)
-    else:
-        print("Iniciando reconhecimento facial em tempo real... ")
-        RecognitionRealTime()
+    await asyncio.gather(
+        RecognitionRealTime(camera, estado),
+        aguardar_comando(camera, estado)
+    )
+
+    camera.release()
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

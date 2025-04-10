@@ -1,0 +1,4 @@
+Alterar a maneira que o modelo é treinado.
+Atualmente ele percorre as pastas com as fotos para treinar o modelo.
+Tentar fazer de um jeito que ele utilize as fotos e também utilize o modelo que ja foi criado anteriormente.
+Dessa maneira não vai ser necessário deixar as fotos dos moradores salvas apos os treinamentos do modelo.
