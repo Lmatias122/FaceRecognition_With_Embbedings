@@ -8,11 +8,12 @@ from facenet_pytorch import MTCNN, InceptionResnetV1
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 mtcnn = MTCNN(image_size=160, margin=20, keep_all=False, device=device)
 resnet = InceptionResnetV1(pretrained='vggface2').eval().to(device)
-embeddings = torch.load('embeddings.pt')
+
 threshold = 0.8
 
 async def RecognitionRealTime(camera, estado):
     print("Bem-Vindo ao sistema de reconhecimento! Pressione 'q' na janela de vídeo para pausar.")
+    embeddings = torch.load('embeddings.pt')
 
     while True:
         if estado["modo"] != "reconhecimento":
