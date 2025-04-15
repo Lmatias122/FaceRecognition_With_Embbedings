@@ -10,7 +10,10 @@ from FaceRecognition_RealTime import RecognitionRealTime
 async def main():
     camera = cv2.VideoCapture(0)
     embeddings_path = 'embeddings.pt'
-    estado = {"modo": "reconhecimento"}  # modo: "reconhecimento" ou "coleta"
+    estado = {
+    "modo": "reconhecimento",
+    "recarregar_embeddings": False,
+    "ultimo_reconhecido": None}
 
     
     if os.path.exists(embeddings_path):

@@ -36,7 +36,6 @@ async def FaceExtract(nome_pessoa, camera):
         x2_ref = x1_ref + box_width
         y2_ref = y1_ref + box_height
 
-        # Desenha moldura
         cv2.rectangle(frame, (x1_ref, y1_ref), (x2_ref, y2_ref), (255, 255, 0), 2)
         cv2.putText(frame, "Centralize o rosto na moldura", (x1_ref - 40, y1_ref - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
@@ -59,6 +58,9 @@ async def FaceExtract(nome_pessoa, camera):
 
             cv2.imshow("Face Detectada", bgr_face_image)
             time.sleep(0.3)
+        else:
+            cv2.putText(frame, "Nenhum rosto detectado", (10, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
         cv2.imshow("Webcam", frame)
 
@@ -69,7 +71,7 @@ async def FaceExtract(nome_pessoa, camera):
             print("Encerrando o sistema.")
             camera.release()
             cv2.destroyAllWindows()
-            sys.exit(0)  # Encerra toda a aplicação
+            sys.exit(0)
 
     print(f"Captura Finalizada! {contador} imagens salvas em {nome_pasta}")
     Extraction_Emb.CreateEmb()

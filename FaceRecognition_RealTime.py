@@ -13,12 +13,26 @@ threshold = 0.8
 
 async def RecognitionRealTime(camera, estado):
     print("Bem-Vindo ao sistema de reconhecimento! Pressione 'q' na janela de vídeo para pausar.")
-    embeddings = torch.load('embeddings.pt')
 
+    embeddings = {}
+    modo_anterior = None
+    contador = 0
     while True:
         if estado["modo"] != "reconhecimento":
             await asyncio.sleep(0.1)
+            modo_anterior = estado["modo"]
             continue
+
+        # Recarrega embeddings se necessário
+        if embeddings == {} or estado.get("recarregar_embeddings") or modo_anterior != "reconhecimento":
+            try:
+                embeddings = torch.load('embeddings.pt')     
+                estado["recarregar_embeddings"] = False
+            except Exception as e:
+                print("Erro ao carregar embeddings:", e)
+                embeddings = {}
+
+        modo_anterior = estado["modo"]
 
         ret, frame = camera.read()
         if not ret:
@@ -56,9 +70,18 @@ async def RecognitionRealTime(camera, estado):
                                 nome = pessoa
                             else:
                                 nome = "Rosto desconhecido"
-
-                    cv2.putText(frame, f"{nome} ({float(menor_dist):.2f})", (10, 30),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+                    if nome != "Rosto desconhecido" and nome != "Desconhecido"  and nome != estado.get("ultimo_reconhecido"):
+                        print(nome)
+                        teste = notificar_backend(nome)
+                       
+                        if(teste):
+                            estado["ultimo_reconhecido"] = nome
+                        else:
+                            estado["ultimo_reconhecido"] = None
+                        # somente setar como ultimo_reconhecido caso receba uma resposta do backend
+                                      
+                    # cv2.putText(frame, f"{nome} ({float(menor_dist):.2f})", (10, 30),
+                    #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
             else:
                 cv2.putText(frame, "Aproxime o rosto da moldura", (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
@@ -80,6 +103,14 @@ async def RecognitionRealTime(camera, estado):
             print("Encerrando o sistema.")
             camera.release()
             cv2.destroyAllWindows()
-         
             sys.exit(0)
-        
+
+def notificar_backend(nome):
+    try:
+        # response = requests.post("http://localhost:3000/api/reconhecimento", json={"pessoa": nome})
+        # print(f"[INFO] Notificado backend: {nome}")
+        print("rosto reconhecido e enviado ao front")
+        return True
+    except Exception as e:
+        # print(f"[ERRO] Falha ao notificar backend: {e}")
+        print("erro ao enviar ao front")

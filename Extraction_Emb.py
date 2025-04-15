@@ -49,4 +49,16 @@ def CreateEmb():
             os.remove(os.path.join(pasta_pessoa, img_file))
         os.rmdir(pasta_pessoa)  # remove pasta da pessoa
 
+async def delete_emb(rg,estado):
+    try:
+        embeddings = torch.load("embeddings.pt")
+        if rg in embeddings:
+            del embeddings[rg]
+            torch.save(embeddings, "embeddings.pt")
+            print(f"{rg} removido com sucesso.")
+            estado["recarregar_embeddings"] = True
+        else:
+            print(f"{rg} não encontrado.")
+    except Exception as e:
+        print(f"Erro ao remover pessoa: {e}")
 
