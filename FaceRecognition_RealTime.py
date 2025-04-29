@@ -68,12 +68,14 @@ async def RecognitionRealTime(camera, estado):
                             menor_dist = dist
                             if dist < threshold:
                                 nome = pessoa
+                                print("primeiro if", nome)
                             else:
                                 nome = "Rosto desconhecido"
                     if nome != "Rosto desconhecido" and nome != "Desconhecido"  and nome != estado.get("ultimo_reconhecido"):
+                        print(estado.get("ultimo_reconhecido"))
                         print(nome)
                         teste = notificar_backend(nome)
-                       
+                        print(teste)
                         if(teste):
                             estado["ultimo_reconhecido"] = nome
                         else:
@@ -109,8 +111,8 @@ def notificar_backend(nome):
     try:
         # response = requests.post("http://localhost:3000/api/reconhecimento", json={"pessoa": nome})
         # print(f"[INFO] Notificado backend: {nome}")
-        print("rosto reconhecido e enviado ao front")
-        return True
+        print("Teste com False")
+        return False
     except Exception as e:
         # print(f"[ERRO] Falha ao notificar backend: {e}")
         print("erro ao enviar ao front")
