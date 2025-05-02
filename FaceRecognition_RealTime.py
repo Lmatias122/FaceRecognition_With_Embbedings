@@ -1,10 +1,8 @@
-import asyncio
-import sys
 import cv2
 import torch
 from PIL import Image
-from api_client import get_Json, post_Json
 from facenet_pytorch import MTCNN, InceptionResnetV1
+from Extraction_Emb import notificar_backend
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 mtcnn = MTCNN(image_size=160, margin=20, keep_all=False, device=device)
@@ -12,16 +10,14 @@ resnet = InceptionResnetV1(pretrained='vggface2').eval().to(device)
 
 threshold = 0.8
 
-async def RecognitionRealTime(camera, estado):
-    print("Bem-Vindo ao sistema de reconhecimento! Pressione 'q' na janela de vídeo para pausar.")
+def RecognitionRealTime(camera, estado):
+    print("Bem-Vindo ao sistema de reconhecimento!")
 
     embeddings = {}
     modo_anterior = None
     contador = 0
     while True:
         if estado["modo"] != "reconhecimento":
-            await asyncio.sleep(0.1)
-            modo_anterior = estado["modo"]
             continue
 
         # Recarrega embeddings se necessário
@@ -69,50 +65,19 @@ async def RecognitionRealTime(camera, estado):
                             menor_dist = dist
                             if dist < threshold:
                                 nome = pessoa
-                               
                             else:
                                 nome = "Rosto desconhecido"
-                    if nome != "Rosto desconhecido" and nome != "Desconhecido"  and nome != estado.get("ultimo_reconhecido"):
-                        
-                        teste = notificar_backend(nome)
-                       
-                        if(teste):
-                            estado["ultimo_reconhecido"] = nome
-                        else:
-                            estado["ultimo_reconhecido"] = None
-                        # somente setar como ultimo_reconhecido caso receba uma resposta do backend
-                                      
-                    cv2.putText(frame, f"{nome} ({float(menor_dist):.2f})", (10, 30),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
-            else:
-                cv2.putText(frame, "Aproxime o rosto da moldura", (10, 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
-        cv2.rectangle(frame, (x1_ref, y1_ref), (x2_ref, y2_ref), (0, 255, 0), 2)
-        cv2.putText(frame, "Posicione seu rosto dentro da moldura", (x1_ref - 30, y1_ref - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                    if nome != "Desconhecido":
+                        estado["ultimo_reconhecido"] = nome
+                        print(f"Reconhecido: {nome} com distância {menor_dist.item():.4f}")
+                    else:
+                        print("Rosto não reconhecido.")
 
-        cv2.imshow("Reconhecimento Facial", frame)
+                cv2.putText(frame, f"Reconhecido: {nome}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        cv2.imshow("Webcam", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-        cv2.waitKey(1)
-
-        await asyncio.sleep(0.01)
-
-        # if key == ord('q'):
-        #     estado["modo"] = "pausado"
-        #     print("Reconhecimento pausado manualmente")
-        #     await asyncio.sleep(0.1)
-
-        # if key == ord('z'):
-        #     print("Encerrando o sistema.")
-        #     camera.release()
-        #     cv2.destroyAllWindows()
-        #     sys.exit(0)
-
-async def notificar_backend(nome):
-    try:
-        response = await post_Json("endpoint",{"pessoa":nome})
-        return response.status == 200
-    except Exception as e:
-        print(f"[ERRO] Falha ao notificar backend: {e}")
-        
+    camera.release()
+    cv2.destroyAllWindows()

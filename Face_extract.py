@@ -1,4 +1,3 @@
-import asyncio
 import os
 import time
 import cv2
@@ -8,7 +7,7 @@ from facenet_pytorch import MTCNN
 import Extraction_Emb
 import sys
 
-async def FaceExtract(nome_pessoa, camera):
+def FaceExtract(nome_pessoa, camera):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     mtcnn = MTCNN(keep_all=False, device=device)
 
@@ -77,4 +76,3 @@ async def FaceExtract(nome_pessoa, camera):
     Extraction_Emb.CreateEmb()
 
     cv2.destroyAllWindows()
-    await asyncio.sleep(0.1)

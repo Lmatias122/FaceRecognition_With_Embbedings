@@ -1,15 +1,11 @@
 import aioconsole
-import aiohttp
-from api_client import get_Json, post_Json
 from Face_extract import FaceExtract
 from Extraction_Emb import delete_all, delete_emb
-
 
 
 async def aguardar_comando(camera, estado):
     while True:
         print("caiu aqui no comando")        
-        coletar = await get_Json("endpoint")
         comando = await aioconsole.ainput("Digite 'coletar' para coletar amostras,'voltar' para retornar ao reconhecimento ou 'deletar' para deletar um usuario, 'deletarTodos': ")
         if comando.strip().lower() == 'coletar':
             nome = await aioconsole.ainput("Digite o nome da pessoa: ")
@@ -27,7 +23,3 @@ async def aguardar_comando(camera, estado):
             print("modo delete all")           
             await delete_all(estado)
             estado["modo"] = "reconhecimento"
-
-
-
-
