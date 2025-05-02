@@ -1,7 +1,8 @@
+from venv import logger
 from flask import Flask, jsonify, request
 import cv2
 import os
-import torch
+import requests
 from Face_extract import FaceExtract
 from FaceRecognition_RealTime import RecognitionRealTime
 from Extraction_Emb import delete_all, delete_emb
@@ -36,13 +37,44 @@ def set_modo():
 
 @app.route('/coletar', methods=['POST'])
 def coletar():
-    nome = request.json.get("nome")
-    if not nome:
-        return jsonify({"error": "Nome não fornecido"}), 400
-    FaceExtract(nome, camera)  # Processo de coleta de imagens para o FaceNet
-    estado["modo"] = "reconhecimento"
-    return jsonify({"message": "Coleta finalizada e modo alterado para reconhecimento."}), 200
+    try:
+        data = request.get_json()
+        rg = data.get('rg')
+        callback_url = data.get('callbackUrl')
+        
+        if not rg:
+            return jsonify({"error": "RG não fornecido"}), 400
+        if not callback_url:
+            return jsonify({"error": "URL de callback não fornecida"}), 400
 
+        FaceExtract(rg, camera)
+
+        for attempt in range(3):
+            try:
+                response = requests.post(
+                    callback_url,
+                    json={"rg": rg, "success": True},
+                    timeout=5
+                )
+                if response.status_code == 200:
+                    break
+            except requests.exceptions.RequestException:
+                if attempt == 2: 
+                    raise
+        
+        if response.status_code == 200:
+            print("Processamento concluído com sucesso, encerrando...")
+            return jsonify({"status": "completed"}), 200
+        else:
+            return jsonify({"error": "Callback failed"}), 500
+
+    except Exception as e:
+        print(f"Erro fatal: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if 'camera' in globals():
+            camera.release()
+        
 @app.route('/deletar', methods=['POST'])
 def deletar():
     rg = request.json.get("rg")
