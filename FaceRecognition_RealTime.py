@@ -3,6 +3,7 @@ import sys
 import cv2
 import torch
 from PIL import Image
+from api_client import get_Json, post_Json
 from facenet_pytorch import MTCNN, InceptionResnetV1
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -68,22 +69,21 @@ async def RecognitionRealTime(camera, estado):
                             menor_dist = dist
                             if dist < threshold:
                                 nome = pessoa
-                                print("primeiro if", nome)
+                               
                             else:
                                 nome = "Rosto desconhecido"
                     if nome != "Rosto desconhecido" and nome != "Desconhecido"  and nome != estado.get("ultimo_reconhecido"):
-                        print(estado.get("ultimo_reconhecido"))
-                        print(nome)
+                        
                         teste = notificar_backend(nome)
-                        print(teste)
+                       
                         if(teste):
                             estado["ultimo_reconhecido"] = nome
                         else:
                             estado["ultimo_reconhecido"] = None
                         # somente setar como ultimo_reconhecido caso receba uma resposta do backend
                                       
-                    # cv2.putText(frame, f"{nome} ({float(menor_dist):.2f})", (10, 30),
-                    #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+                    cv2.putText(frame, f"{nome} ({float(menor_dist):.2f})", (10, 30),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
             else:
                 cv2.putText(frame, "Aproxime o rosto da moldura", (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
@@ -94,25 +94,25 @@ async def RecognitionRealTime(camera, estado):
 
         cv2.imshow("Reconhecimento Facial", frame)
 
-        key = cv2.waitKey(1) & 0xFF
+        cv2.waitKey(1)
 
-        if key == ord('q'):
-            estado["modo"] = "pausado"
-            print("Reconhecimento pausado manualmente")
-            await asyncio.sleep(0.1)
+        await asyncio.sleep(0.01)
 
-        elif key == ord('z'):
-            print("Encerrando o sistema.")
-            camera.release()
-            cv2.destroyAllWindows()
-            sys.exit(0)
+        # if key == ord('q'):
+        #     estado["modo"] = "pausado"
+        #     print("Reconhecimento pausado manualmente")
+        #     await asyncio.sleep(0.1)
 
-def notificar_backend(nome):
+        # if key == ord('z'):
+        #     print("Encerrando o sistema.")
+        #     camera.release()
+        #     cv2.destroyAllWindows()
+        #     sys.exit(0)
+
+async def notificar_backend(nome):
     try:
-        # response = requests.post("http://localhost:3000/api/reconhecimento", json={"pessoa": nome})
-        # print(f"[INFO] Notificado backend: {nome}")
-        print("Teste com False")
-        return False
+        response = await post_Json("endpoint",{"pessoa":nome})
+        return response.status == 200
     except Exception as e:
-        # print(f"[ERRO] Falha ao notificar backend: {e}")
-        print("erro ao enviar ao front")
+        print(f"[ERRO] Falha ao notificar backend: {e}")
+        

@@ -62,3 +62,14 @@ async def delete_emb(rg,estado):
     except Exception as e:
         print(f"Erro ao remover pessoa: {e}")
 
+async def delete_all(estado):
+    try:
+        print("caiu aqui")
+        embeddings = torch.load("embeddings.pt")
+        embeddings.clear()
+        torch.save(embeddings,'embeddings.pt')
+        estado["recarregar_embeddings"] = True
+        print("Todos os embeddings foram deletados.")
+    except Exception as e:
+        print(f"Erro ao deletar embeddings: {e}")
+
