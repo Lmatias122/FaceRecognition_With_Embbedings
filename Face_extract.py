@@ -66,13 +66,13 @@ def FaceExtract(nome_pessoa, camera):
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q') or contador >= total_imagens:
             break
-        elif key == ord('z'):
-            print("Encerrando o sistema.")
-            camera.release()
-            cv2.destroyAllWindows()
-            sys.exit(0)
+        # elif key == ord('z'):
+        #     print("Encerrando o sistema.")
+        #     camera.release()
+        #     cv2.destroyAllWindows()
+        #     sys.exit(0)
 
     print(f"Captura Finalizada! {contador} imagens salvas em {nome_pasta}")
     Extraction_Emb.CreateEmb()
 
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()

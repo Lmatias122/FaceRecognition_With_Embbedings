@@ -7,7 +7,7 @@ import torch
 from Face_extract import FaceExtract
 from comando import aguardar_comando
 from FaceRecognition_RealTime import RecognitionRealTime
-from app import start_flask
+from app import get_shared_state, start_flask
 from app import app, set_camera_instance
 
 async def main():
@@ -19,10 +19,7 @@ async def main():
     set_camera_instance(camera)
     
     embeddings_path = 'embeddings.pt'
-    estado = {
-    "modo": "reconhecimento",
-    "recarregar_embeddings": False,
-    "ultimo_reconhecido": None}
+    estado = get_shared_state()
 
     
     if os.path.exists(embeddings_path):

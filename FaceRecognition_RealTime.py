@@ -1,3 +1,5 @@
+import os
+import time
 import cv2
 import torch
 from PIL import Image
@@ -11,22 +13,29 @@ threshold = 0.8
 
 def RecognitionRealTime(camera, estado):
     print("Bem-Vindo ao sistema de reconhecimento!")
-
     embeddings = {}
     modo_anterior = None
-    contador = 0
+    
+    ultima_verificacao = 0
     while True:
-        if estado["modo"] != "reconhecimento":
-            continue
-
-        # Recarrega embeddings se necessário
-        if embeddings == {} or estado.get("recarregar_embeddings") or modo_anterior != "reconhecimento":
-            try:
-                embeddings = torch.load('embeddings.pt')     
-                estado["recarregar_embeddings"] = False
-            except Exception as e:
-                print("Erro ao carregar embeddings:", e)
-                embeddings = {}
+        agora = time.time()
+        
+        # ALTERAÇÃO CRÍTICA 2: Verificar a cada 0.5s (não em todo frame)
+        if agora - ultima_verificacao > 0.5:
+            with estado["lock"]:
+                recarregar = estado.get("recarregar_embeddings", False)
+                
+                if recarregar:
+                    try:
+                        if os.path.exists('embeddings.pt'):
+                            embeddings = torch.load('embeddings.pt')
+                            estado["recarregar_embeddings"] = False
+                        else:
+                            print("Arquivo embeddings.pt não encontrado!")
+                    except Exception as e:
+                        print("Erro ao carregar embeddings:", str(e))
+            
+            ultima_verificacao = agora
 
         modo_anterior = estado["modo"]
 
@@ -69,9 +78,9 @@ def RecognitionRealTime(camera, estado):
 
                     if nome != "Desconhecido":
                         estado["ultimo_reconhecido"] = nome
-                        print(f"Reconhecido: {nome} com distância {menor_dist.item():.4f}")
-                    else:
-                        print("Rosto não reconhecido.")
+                        # print(f"Reconhecido: {nome} com distância {menor_dist.item():.4f}")
+                    # else:
+                        # print("Rosto não reconhecido.")
 
                 cv2.putText(frame, f"Reconhecido: {nome}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
         cv2.imshow("Webcam", frame)
