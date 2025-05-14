@@ -20,9 +20,6 @@ estado = {
     "ultimo_reconhecido": None
 }
 
-# Inicializa a câmera
-camera = cv2.VideoCapture(0)
-
 @app.route('/status', methods=['GET'])
 def get_status():
     return jsonify({"modo": estado["modo"], "ultimo_reconhecido": estado["ultimo_reconhecido"]})
@@ -96,8 +93,14 @@ def reconhecimento():
     RecognitionRealTime(camera, estado)
     return jsonify({"message": "Reconhecimento iniciado."}), 200
 
-if __name__ == '__main__':
+camera = None
+
+def set_camera_instance(cam):
+    global camera
+    camera = cam
+
+def start_flask():
     if os.path.exists(embeddings_path):
-        app.run(debug=True, use_reloader=False)
+        app.run(debug=False, use_reloader=False)
     else:
         print("Não existem embeddings criados, execute a coleta de amostras primeiro.")
