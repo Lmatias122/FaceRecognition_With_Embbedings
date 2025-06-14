@@ -62,7 +62,7 @@ async def delete_emb(rg,estado):
     except Exception as e:
         print(f"Erro ao remover pessoa: {e}")
 
-async def delete_all(estado):
+def delete_all(estado):
     try:
         print("caiu aqui")
         embeddings = torch.load("embeddings.pt")

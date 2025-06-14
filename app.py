@@ -16,7 +16,7 @@ embeddings_path = 'embeddings.pt'
 # Estado global com thread lock
 estado = {
     "modo": "reconhecimento",
-    "recarregar_embeddings": False,
+    "recarregar_embeddings": True,
     "ultimo_reconhecido": None,
     "lock": threading.Lock()  # Único lock para toda aplicação
 }
@@ -83,6 +83,16 @@ def coletar():
     except Exception as e:
         print(f"Erro fatal: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
+    
+    # delete_all(estado)
+    
+    # with estado["lock"]:
+    #     estado["recarregar_embeddings"] = True  # Sinaliza para recarregar
+    #     estado["modo"] = "reconhecimento"
+    
+    # return jsonify({"message": "Todos os embutimentos foram deletados."}), 200
         
 @app.route('/deletar', methods=['POST'])
 def deletar():
